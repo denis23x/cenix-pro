@@ -12,16 +12,17 @@
         />
       </v-col>
       <v-col cols="auto">
-        <v-btn color="primary" variant="flat" size="large" @click="postDialogToggle(null, true)">
+        <v-btn color="primary" variant="flat" size="large" @click="postDialogToggle(true)">
           Add
         </v-btn>
       </v-col>
     </v-row>
 
-    <v-dialog v-model="postDialog" max-width="500" @after-leave="postDialogToggle(null, false)">
+    <v-dialog v-model="postDialog" max-width="500" @after-leave="postDialogToggle(false)">
       <v-card>
-        <v-card-title v-if="postDialogEditId">Edit {{ postDialogEditId }}</v-card-title>
-        <v-card-title v-else>Add Post</v-card-title>
+        <v-card-title>
+          {{ postDialogEditId ? `Edit ${postDialogEditId}` : 'Add Post' }}
+        </v-card-title>
         <v-card-text>
           <v-textarea
             :single-line="true"
@@ -34,8 +35,15 @@
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn variant="flat" color="primary" @click="postUpsert">Save</v-btn>
-          <v-btn variant="text" @click="postDialogToggle(null, false)">Cancel</v-btn>
+          <v-btn
+            variant="flat"
+            color="primary"
+            @click="postUpsert"
+            :disabled="!postDialogName.trim()"
+          >
+            Save
+          </v-btn>
+          <v-btn variant="text" @click="postDialogToggle(false)">Cancel</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -53,7 +61,7 @@
             <v-card-subtitle>ID: {{ post.id }}</v-card-subtitle>
             <v-card-text> Name: {{ post.name }} </v-card-text>
             <v-card-actions>
-              <v-btn variant="flat" color="primary" @click="postDialogToggle(post.id, true)">
+              <v-btn variant="flat" color="primary" @click="postDialogToggle(true, post.id)">
                 Edit
               </v-btn>
               <v-btn variant="flat" color="red" @click="postDelete(post.id)">Delete</v-btn>
@@ -84,19 +92,20 @@ export default defineComponent({
     const postDialogEditId = ref<string | null>(null)
     const postDialogName = ref('')
 
-    const postDialogToggle = (id: string | null, toggle: boolean) => {
-      if (id) {
-        const post: Post | undefined = store.posts.find((post: Post) => post.id === id)
-
-        if (post) {
-          postDialogName.value = post.name
-        }
-      } else {
-        postDialogName.value = ''
-      }
-
-      postDialogEditId.value = id
+    const postDialogToggle = (toggle: boolean, id: string | null = null) => {
       postDialog.value = toggle
+      postDialogEditId.value = id
+      postDialogName.value = (() => {
+        if (id) {
+          const post: Post | undefined = store.posts.find((post: Post) => post.id === id)
+
+          if (post) {
+            return post.name
+          }
+        }
+
+        return ''
+      })()
     }
 
     const postUpsert = () => {
@@ -108,7 +117,7 @@ export default defineComponent({
         }
 
         postDialogName.value = ''
-        postDialogToggle(null, false)
+        postDialogToggle(false)
       }
     }
 

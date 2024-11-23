@@ -1,5 +1,3 @@
-import './assets/main.css'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
@@ -13,7 +11,7 @@ import * as directives from 'vuetify/directives'
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(createVuetify({ ssr: true, components, directives }))
+app.use(createVuetify({ components, directives }))
 app.use(router)
 
 app.mount('#app')
